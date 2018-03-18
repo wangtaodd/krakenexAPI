@@ -11,21 +11,21 @@
 import sys
 import os
 
+
 if __name__ == '__main__':
     here = sys.path[0]
     sys.path.insert(1, os.path.join(here, os.path.pardir))
+
 
 import krakenex
 import time
 import sched
 
 
-
-
 def perform_command(cmd, inc):
     # 安排inc秒后再次运行自己，即周期运行
     schedule.enter(inc, 0, perform_command, (cmd, inc))
-    autoSale()
+    auto_sale()
 
 
 def timing_exe(cmd, inc):
@@ -35,7 +35,7 @@ def timing_exe(cmd, inc):
     schedule.run()
 
 
-def autoSale():
+def auto_sale():
     k = krakenex.API()
     if __name__ == "__main__":
         k.load_key('kraken.key')
@@ -54,38 +54,38 @@ def autoSale():
 
     print('持有ZEC数量：' + balance['result']['XZEC'])
     print('持有EUR数量：' + balance['result']['ZEUR'])
-    amount_Total = float(balance['result']['XZEC'])
+    amount_total = float(balance['result']['XZEC'])
 
-    openOrdersDict = {}
+    open_orders_dict = {}
     count = 0
-    while not ("result" in openOrdersDict) and count < 5:
-        openOrdersDict = k.query_private('OpenOrders')
+    while not ("result" in open_orders_dict) and count < 5:
+        open_orders_dict = k.query_private('OpenOrders')
         count += 1
-    if not ("result" in openOrdersDict):
+    if not ("result" in open_orders_dict):
         return print("request OpenOrders failed")
 
-    openOrders = openOrdersDict['result']['open']
-    amount_onSale = 0
-    for i in openOrders:
-        if openOrders[i]['descr']['type'] == 'sell':
-            amount_onSale += float(openOrders[i]['vol'])
-    print("销售中ZEC数量：" + str(amount_onSale))
-    amount_forSale = amount_Total - amount_onSale
-    print("可销售ZEC数量：" + str(amount_forSale))
+    open_orders = open_orders_dict['result']['open']
+    amount_on_sale = 0
+    for i in open_orders:
+        if open_orders[i]['descr']['type'] == 'sell':
+            amount_on_sale += float(open_orders[i]['vol'])
+    print("销售中ZEC数量：" + str(amount_on_sale))
+    amount_for_sale = amount_total - amount_on_sale
+    print("可销售ZEC数量：" + str(amount_for_sale))
 
-    priceRes = {}
+    price_res = {}
     count = 0
-    while not ("result" in priceRes) and count < 5:
-        priceRes = k.query_public('Ticker', {'pair': 'ZECEUR'})
+    while not ("result" in price_res) and count < 5:
+        price_res = k.query_public('Ticker', {'pair': 'ZECEUR'})
         count += 1
-    if not ("result" in priceRes):
+    if not ("result" in price_res):
         return print("request Current Price failed")
 
-    print('最新成交价格：' + priceRes['result']['XZECZEUR']['c'][0])
-    lastPrice = round(float(priceRes['result']['XZECZEUR']['c'][0]), 2)
-    price = max(300, lastPrice)
-    if amount_forSale > 0.03:
-        amount_forSale = int(amount_forSale * 100) / 100
+    print('最新成交价格：' + price_res['result']['XZECZEUR']['c'][0])
+    last_price = round(float(price_res['result']['XZECZEUR']['c'][0]), 2)
+    price = max(300.0, last_price)
+    if amount_for_sale > 0.03:
+        amount_for_sale = int(amount_for_sale * 100) / 100
         res = {}
         count = 0
         while not ("result" in res) and count < 5:
@@ -94,14 +94,14 @@ def autoSale():
                                                'ordertype': 'market',
                                                'trading_agreement': 'agree',
                                                'price': str(price),
-                                               'volume': str(amount_forSale)})
+                                               'volume': str(amount_for_sale)})
             count += 1
         if not ("result" in res):
             return print("request AddOrder failed")
         print(res)
         if not res['error']:
-            print("下达出售订单，价格为" + str(price) + '数量为：' + str(amount_forSale))
-            return "下达出售订单，价格为" + str(price) + '数量为：' + str(amount_forSale)
+            print("下达出售订单，价格为" + str(price) + '数量为：' + str(amount_for_sale))
+            return "下达出售订单，价格为" + str(price) + '数量为：' + str(amount_for_sale)
 
 
 if __name__ == "__main__":
